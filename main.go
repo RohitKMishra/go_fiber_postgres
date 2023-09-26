@@ -2,22 +2,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	// "github.com/gofiber/fiber/v2/middleware/bodyparser"
+	"github.com/joho/godotenv"
 	"go_server/models"
 	"go_server/storage"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 	// "github.com/nyshnt/go-fiber-postgres/database"
 )
 
 type Book struct {
-	Author    string `json:"author"`
-	Title     string `json:"title"`
-	Publisher string `json:"publisher"`
+	Author    *string `json:"author"`
+	Title     *string `json:"title"`
+	Publisher *string `json:"publisher"`
 }
 
 type Repository struct {
@@ -28,11 +28,12 @@ func (r *Repository) CreateBook(context *fiber.Ctx) error {
 	book := Book{}
 
 	err := context.BodyParser(&book)
-	fmt.Println(book)
+	fmt.Println("Author is :", *book.Publisher)
 
 	if err != nil {
 		context.Status(http.StatusUnprocessableEntity).JSON(
 			&fiber.Map{"message": "request failed"})
+		fmt.Println("error = ", err)
 		return err
 	}
 
@@ -116,7 +117,7 @@ func (r *Repository) GetBookByID(context *fiber.Ctx) error {
 
 func (r *Repository) SetupRoutes(app *fiber.App) {
 	api := app.Group("/api")
-	api.Post("/create_book", r.CreateBook)
+	api.Post("/create_books", r.CreateBook)
 	api.Delete("/delete_book/:id", r.DeleteBook)
 	api.Get("/get_books/:id", r.GetBookByID)
 	api.Get("/books", r.GetBooks)
@@ -159,6 +160,8 @@ func main() {
 	}
 
 	app := fiber.New()
+
+	// app.Use(bodyparser.New())
 	r.SetupRoutes(app)
 	app.Listen(":8080")
 }
